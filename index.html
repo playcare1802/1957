@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek-R1 AI Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #6b8cbc;
+            --dark: #1a2a6c;
+            --darker: #0d1b3a;
+            --light: #ecf0f1;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --ai-color: #6b8cbc;
+            --user-color: #4a6fa5;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .requests-counter {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--primary);
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-title {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title i {
+            color: var(--primary);
+        }
+        
+        .chat-container {
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 12px;
+            max-width: 85%;
+            animation: fadeIn 0.4s ease;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            background: var(--user-color);
+            margin-left: auto;
+            border-bottom-right-radius: 3px;
+        }
+        
+        .ai-message {
+            background: rgba(255, 255, 255, 0.1);
+            margin-right: auto;
+            border-bottom-left-radius: 3px;
+        }
+        
+        .ai-message::before {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 15px;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 10px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-message::before {
+            content: "";
+            position: absolute;
+            right: -10px;
+            top: 15px;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 10px solid var(--user-color);
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .message-content {
+            line-height: 1.5;
+        }
+        
+        .message-content pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        
+        .message-content code {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input textarea {
+            flex: 1;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            resize: none;
+            height: 80px;
+            transition: border-color 0.3s;
+        }
+        
+        .chat-input textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .chat-input button {
+            align-self: flex-end;
+            padding: 15px 20px;
+            border-radius: 10px;
+        }
+        
+        .packages {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 600px) {
+            .packages {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .package {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .package:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .package.selected {
+            border-color: var(--success);
+            background: rgba(39, 174, 96, 0.1);
+        }
+        
+        .package h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--light);
+        }
+        
+        .package .price {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 15px 0;
+            color: var(--success);
+        }
+        
+        .package .requests {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+        
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+        
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 35px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .auth-title {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--light);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .form-footer {
+            margin-top: 25px;
+            text-align: center;
+            color: var(--light);
+        }
+        
+        .form-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        
+        .history-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .history-date {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+        
+        .history-message {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .payment-info {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 25px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 18px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.4s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: var(--success);
+        }
+        
+        .notification.error {
+            background: var(--danger);
+        }
+        
+        .notification.warning {
+            background: var(--warning);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .ai-info {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--primary);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        /* Стили для изображений */
+        .generated-image {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .download-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .download-btn:hover {
+            background: var(--secondary);
+        }
+
+        .image-prompt {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .image-error {
+            color: var(--danger);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка приложения -->
+        <header>
+            <div class="logo">
+                <i class="fas fa-robot logo-icon"></i>
+                <h1>DeepSeek-R1 AI Assistant</h1>
+            </div>
+            <div class="user-info">
+                <div class="requests-counter">
+                    <i class="fas fa-bolt"></i>
+                    <span id="requests-count">0</span> запросов
+                </div>
+                <button id="buy-btn" class="btn btn-success">
+                    <i class="fas fa-shopping-cart"></i> Купить запросы
+                </button>
+                <button id="logout-btn" class="btn btn-danger">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </button>
+            </div>
+        </header>
+
+        <!-- Главный экран приложения -->
+        <div id="main-screen" class="hidden">
+            <div class="main-content">
+                <!-- Блок чата -->
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-comments"></i>
+                        <h2>Чат с DeepSeek-R1</h2>
+                    </div>
+                    <div class="ai-info">
+                        <i class="fas fa-info-circle"></i> Используется модель <strong>deepseek/deepseek-r1</strong> через <strong>OpenRouter.ai</strong>
+                    </div>
+                    <div class="chat-container">
+                        <div class="chat-history" id="chat-history">
+                            <div class="message ai-message">
+                                <div class="message-header">
+                                    <span>DeepSeek-R1</span>
+                                    <span>Только что</span>
+                                </div>
+                                <div class="message-content">
+                                    Привет! Я DeepSeek-R1, ваш AI ассистент. Могу помочь с программированием, объяснить сложные концепции, помочь с анализом данных и многое другое. Чем могу быть полезен?
+                                    <br><br>
+                                    Чтобы сгенерировать изображение, используйте команды: "Нарисуй...", "Сгенерируй изображение...", "Создай картинку..." или "Фотка..."
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input">
+                            <textarea id="message-input" placeholder="Введите ваш вопрос..."></textarea>
+                            <button id="send-btn" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Отправить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Блок истории чата -->
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-history"></i>
+                        <h2>История запросов</h2>
+                    </div>
+                    <div class="history-list" id="history-list">
+                        <div class="history-item">
+                            <div class="history-date">Сегодня, 15:30</div>
+                            <div class="history-message">Как работает искусственный интеллект?</div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-date">Сегодня, 14:45</div>
+                            <div class="history-message">Расскажи о возможностях DeepSeek-R1</div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-date">Вчера, 18:22</div>
+                            <div class="history-message">Как создать нейронную сеть с нуля?</div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-date">15 июля, 10:15</div>
+                            <div class="history-message">Какие языки программирования лучше всего подходят для AI?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок покупки запросов -->
+            <div id="buy-section" class="hidden">
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h2>Покупка запросов</h2>
+                    </div>
+                    <p>Выберите пакет запросов для покупки:</p>
+                    
+                    <div class="packages">
+                        <div class="package" data-package="30">
+                            <h3>Базовый пакет</h3>
+                            <div class="price">5 ₽</div>
+                            <div class="requests">30 запросов</div>
+                            <div class="btn btn-secondary">Выбрать</div>
+                        </div>
+                        <div class="package" data-package="1000">
+                            <h3>Премиум пакет</h3>
+                            <div class="price">50 ₽</div>
+                            <div class="requests">1000 запросов</div>
+                            <div class="btn btn-secondary">Выбрать</div>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-info">
+                        <h3><i class="fas fa-wallet"></i> Способ оплаты</h3>
+                        <p>Для оплаты переведите средства на ЮMoney кошелек:</p>
+                        <div class="payment-details">
+                            <p><strong>Номер кошелька:</strong> <span id="yoomoney-wallet">4100111234567890</span></p>
+                            <p><strong>Сумма:</strong> <span id="payment-amount">0</span> ₽</p>
+                        </div>
+                        <p class="warning"><i class="fas fa-exclamation-circle"></i> После оплаты пришлите скриншот чека в поддержку для активации запросов.</p>
+                        <button id="confirm-payment" class="btn btn-success" disabled>
+                            <i class="fas fa-check-circle"></i> Подтвердить оплату
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран авторизации -->
+        <div id="auth-screen" class="auth-container">
+            <div class="auth-card">
+                <div id="login-form">
+                    <h2 class="auth-title">Вход в систему</h2>
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="Введите ваш email">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Пароль</label>
+                        <input type="password" id="login-password" placeholder="Введите пароль">
+                    </div>
+                    <button id="login-btn" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </button>
+                    <div class="form-footer">
+                        <p>Нет аккаунта? <a href="#" id="show-register">Зарегистрироваться</a></p>
+                    </div>
+                </div>
+
+                <div id="register-form" class="hidden">
+                    <h2 class="auth-title">Регистрация</h2>
+                    <div class="form-group">
+                        <label for="register-name">Имя пользователя</label>
+                        <input type="text" id="register-name" placeholder="Введите ваше имя">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" placeholder="Введите ваш email">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Пароль</label>
+                        <input type="password" id="register-password" placeholder="Придумайте пароль">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-confirm">Подтверждение пароля</label>
+                        <input type="password" id="register-confirm" placeholder="Повторите пароль">
+                    </div>
+                    <button id="register-btn" class="btn btn-success">
+                        <i class="fas fa-user-plus"></i> Зарегистрироваться
+                    </button>
+                    <div class="form-footer">
+                        <p>Уже зарегистрированы? <a href="#" id="show-login">Войти</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>DeepSeek-R1 AI Assistant &copy; 2023 | Использует модель deepseek/deepseek-r1 через OpenRouter API</p>
+        </footer>
+    </div>
+
+    <!-- Уведомления -->
+    <div id="notification" class="notification">
+        <i class="fas fa-info-circle"></i>
+        <span id="notification-text"></span>
+    </div>
+
+    <script>
+        // Конфигурация API
+        const API_CONFIG = {
+            API_KEY: "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",
+            MODEL: "deepseek/deepseek-r1",
+            CHAT_API_URL: "https://openrouter.ai/api/v1/chat/completions",
+            IMAGE_API_URL: "https://api.openrouter.ai/v1/images/generations",
+            YOOMONEY_WALLET: "4100111234567890"
+        };
+
+        // Состояние приложения
+        const state = {
+            isAuthenticated: false,
+            requestsLeft: 0,
+            currentPage: 'auth',
+            selectedPackage: null,
+            userId: null,
+            username: null,
+            email: null
+        };
+
+        // Элементы DOM
+        const elements = {
+            authScreen: document.getElementById('auth-screen'),
+            mainScreen: document.getElementById('main-screen'),
+            loginForm: document.getElementById('login-form'),
+            registerForm: document.getElementById('register-form'),
+            requestsCount: document.getElementById('requests-count'),
+            buySection: document.getElementById('buy-section'),
+            chatHistory: document.getElementById('chat-history'),
+            messageInput: document.getElementById('message-input'),
+            sendBtn: document.getElementById('send-btn'),
+            buyBtn: document.getElementById('buy-btn'),
+            logoutBtn: document.getElementById('logout-btn'),
+            packages: document.querySelectorAll('.package'),
+            paymentAmount: document.getElementById('payment-amount'),
+            confirmPayment: document.getElementById('confirm-payment'),
+            notification: document.getElementById('notification'),
+            notificationText: document.getElementById('notification-text'),
+            historyList: document.getElementById('history-list'),
+            yoomoneyWallet: document.getElementById('yoomoney-wallet')
+        };
+
+        // Инициализация приложения
+        function init() {
+            bindEvents();
+            showAuthScreen();
+            simulateHistory();
+            elements.yoomoneyWallet.textContent = API_CONFIG.YOOMONEY_WALLET;
+        }
+
+        // Привязка событий
+        function bindEvents() {
+            // Навигация
+            document.getElementById('show-register').addEventListener('click', showRegisterForm);
+            document.getElementById('show-login').addEventListener('click', showLoginForm);
+            elements.logoutBtn.addEventListener('click', logout);
+            elements.buyBtn.addEventListener('click', showBuySection);
+            
+            // Формы
+            document.getElementById('login-btn').addEventListener('click', login);
+            document.getElementById('register-btn').addEventListener('click', register);
+            
+            // Чат
+            elements.sendBtn.addEventListener('click', sendMessage);
+            elements.messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Покупка запросов
+            elements.packages.forEach(pkg => {
+                pkg.addEventListener('click', () => selectPackage(pkg));
+            });
+            
+            elements.confirmPayment.addEventListener('click', confirmPayment);
+        }
+
+        // Показать экран авторизации
+        function showAuthScreen() {
+            elements.authScreen.classList.remove('hidden');
+            elements.mainScreen.classList.add('hidden');
+            state.currentPage = 'auth';
+        }
+
+        // Показать главный экран
+        function showMainScreen() {
+            elements.authScreen.classList.add('hidden');
+            elements.mainScreen.classList.remove('hidden');
+            state.currentPage = 'main';
+        }
+
+        // Показать форму входа
+        function showLoginForm(e) {
+            if (e) e.preventDefault();
+            elements.loginForm.classList.remove('hidden');
+            elements.registerForm.classList.add('hidden');
+        }
+
+        // Показать форму регистрации
+        function showRegisterForm(e) {
+            if (e) e.preventDefault();
+            elements.loginForm.classList.add('hidden');
+            elements.registerForm.classList.remove('hidden');
+        }
+
+        // Показать раздел покупки
+        function showBuySection() {
+            elements.buySection.classList.remove('hidden');
+            elements.buySection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Скрыть раздел покупки
+        function hideBuySection() {
+            elements.buySection.classList.add('hidden');
+        }
+
+        // Выбор пакета
+        function selectPackage(pkg) {
+            // Сброс предыдущего выбора
+            elements.packages.forEach(p => p.classList.remove('selected'));
+            
+            // Выбор нового пакета
+            pkg.classList.add('selected');
+            state.selectedPackage = pkg.dataset.package;
+            
+            // Установка суммы оплаты
+            const amount = state.selectedPackage === '30' ? 5 : 50;
+            elements.paymentAmount.textContent = amount;
+            
+            // Активация кнопки подтверждения
+            elements.confirmPayment.disabled = false;
+        }
+
+        // Авторизация
+        function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!email || !password) {
+                showNotification('Заполните все поля', 'error');
+                return;
+            }
+            
+            // Эмуляция успешной авторизации
+            state.isAuthenticated = true;
+            state.requestsLeft = 15;
+            state.email = email;
+            state.username = email.split('@')[0];
+            updateUI();
+            showMainScreen();
+            showNotification('Вход выполнен успешно', 'success');
+        }
+
+        // Регистрация
+        function register() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+            
+            if (!name || !email || !password || !confirm) {
+                showNotification('Заполните все поля', 'error');
+                return;
+            }
+            
+            if (password !== confirm) {
+                showNotification('Пароли не совпадают', 'error');
+                return;
+            }
+            
+            // Эмуляция успешной регистрации
+            state.isAuthenticated = true;
+            state.requestsLeft = 5; // Начальные запросы для нового пользователя
+            state.email = email;
+            state.username = name;
+            updateUI();
+            showMainScreen();
+            showNotification('Регистрация прошла успешно', 'success');
+            showLoginForm();
+        }
+
+        // Выход из системы
+        function logout() {
+            state.isAuthenticated = false;
+            state.requestsLeft = 0;
+            showAuthScreen();
+            showNotification('Вы вышли из системы', 'success');
+        }
+
+        // Генерация изображений
+        async function generateImage(prompt) {
+            try {
+                // Удаляем команды из промпта
+                const cleanPrompt = prompt.replace(/(нарисуй|сгенерируй изображение|создай картинку|фотка|фото)/i, '').trim();
+                
+                const response = await fetch(API_CONFIG.IMAGE_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "stability-ai/sdxl",
+                        prompt: cleanPrompt,
+                        n: 1,
+                        size: "1024x1024"
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || 'Ошибка при генерации изображения');
+                }
+                
+                const data = await response.json();
+                return data.data[0].url;
+            } catch (error) {
+                console.error("Ошибка генерации изображения:", error);
+                throw error;
+            }
+        }
+
+        // Скачивание изображения
+        function downloadImage(imageUrl) {
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = 'ai-image-' + Date.now() + '.jpg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showNotification('Изображение сохранено', 'success');
+        }
+
+        // Отправка сообщения
+        async function sendMessage() {
+            const message = elements.messageInput.value.trim();
+            
+            if (!message) {
+                showNotification('Введите сообщение', 'error');
+                return;
+            }
+            
+            if (state.requestsLeft <= 0) {
+                showNotification('Недостаточно запросов. Купите больше.', 'error');
+                showBuySection();
+                return;
+            }
+            
+            // Добавление сообщения пользователя
+            addMessageToChat(message, 'user');
+            elements.messageInput.value = '';
+            
+            // Эмуляция загрузки
+            const loadingMessage = addMessageToChat('Думаю...', 'ai');
+            
+            try {
+                // Проверяем, хочет ли пользователь сгенерировать изображение
+                const isImageRequest = /(нарисуй|сгенерируй изображение|создай картинку|фотка|фото)/i.test(message);
+                
+                if (isImageRequest) {
+                    // Генерация изображения
+                    const imageUrl = await generateImage(message);
+                    
+                    // Удаление сообщения "Думаю..."
+                    loadingMessage.remove();
+                    
+                    // Создаем HTML для изображения
+                    const imageHtml = `
+                        <div class="message-content">
+                            Вот ваше сгенерированное изображение:
+                            <img src="${imageUrl}" class="generated-image">
+                            <button class="download-btn" onclick="downloadImage('${imageUrl}')">
+                                <i class="fas fa-download"></i> Скачать
+                            </button>
+                            <div class="image-prompt">Запрос: ${message}</div>
+                        </div>
+                    `;
+                    
+                    // Добавляем сообщение с изображением
+                    addMessageToChat(imageHtml, 'ai', true);
+                    
+                } else {
+                    // Обычный текстовый запрос
+                    const response = await fetch(API_CONFIG.CHAT_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: API_CONFIG.MODEL,
+                            messages: [
+                                { role: 'user', content: message }
+                            ]
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Удаление сообщения "Думаю..."
+                    loadingMessage.remove();
+                    
+                    if (data.error) {
+                        throw new Error(data.error.message || 'Ошибка сервера');
+                    }
+                    
+                    // Получение ответа
+                    const aiResponse = data.choices[0].message.content;
+                    
+                    // Добавление ответа в чат
+                    addMessageToChat(aiResponse, 'ai');
+                }
+                
+                // Обновление количества запросов
+                state.requestsLeft--;
+                updateUI();
+                
+                // Добавление в историю
+                addToHistory(message);
+                
+            } catch (error) {
+                console.error("Ошибка:", error);
+                loadingMessage.remove();
+                showNotification(`Ошибка: ${error.message}`, 'error');
+                addMessageToChat('Произошла ошибка при обработке запроса. Пожалуйста, попробуйте позже.', 'ai');
+            }
+        }
+
+        // Подтверждение оплаты
+        function confirmPayment() {
+            if (!state.selectedPackage) {
+                showNotification('Выберите пакет', 'error');
+                return;
+            }
+            
+            // Добавление запросов
+            const requests = parseInt(state.selectedPackage);
+            state.requestsLeft += requests;
+            
+            // Обновление UI
+            updateUI();
+            hideBuySection();
+            
+            // Сброс выбора пакета
+            elements.packages.forEach(p => p.classList.remove('selected'));
+            elements.confirmPayment.disabled = true;
+            state.selectedPackage = null;
+            
+            showNotification(`Добавлено ${requests} запросов!`, 'success');
+        }
+
+        // Добавление сообщения в чат
+        function addMessageToChat(content, sender, isHtml = false) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
+            
+            const now = new Date();
+            const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            if (isHtml) {
+                messageElement.innerHTML = `
+                    <div class="message-header">
+                        <span>${sender === 'user' ? state.username || 'Вы' : 'DeepSeek-R1'}</span>
+                        <span>${time}</span>
+                    </div>
+                    ${content}
+                `;
+            } else {
+                // Форматирование обычного текстового сообщения
+                let formattedContent = content
+                    .replace(/```([\s\S]*?)```/g, '<pre>$1</pre>')
+                    .replace(/`([^`]+)`/g, '<code>$1</code>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n/g, '<br>');
+                
+                messageElement.innerHTML = `
+                    <div class="message-header">
+                        <span>${sender === 'user' ? state.username || 'Вы' : 'DeepSeek-R1'}</span>
+                        <span>${time}</span>
+                    </div>
+                    <div class="message-content">${formattedContent}</div>
+                `;
+            }
+            
+            elements.chatHistory.appendChild(messageElement);
+            elements.chatHistory.scrollTop = elements.chatHistory.scrollHeight;
+            
+            return messageElement;
+        }
+
+        // Добавление в историю
+        function addToHistory(message) {
+            const now = new Date();
+            const date = `Сегодня, ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            const historyItem = document.createElement('div');
+            historyItem.classList.add('history-item');
+            historyItem.innerHTML = `
+                <div class="history-date">${date}</div>
+                <div class="history-message">${message}</div>
+            `;
+            
+            elements.historyList.insertBefore(historyItem, elements.historyList.firstChild);
+        }
+
+        // Имитация истории запросов
+        function simulateHistory() {
+            const history = [
+                {date: "Сегодня, 15:30", message: "Как работает искусственный интеллект?"},
+                {date: "Сегодня, 14:45", message: "Расскажи о возможностях DeepSeek-R1"},
+                {date: "Вчера, 18:22", message: "Как создать нейронную сеть с нуля?"},
+                {date: "15 июля, 10:15", message: "Какие языки программирования лучше всего подходят для AI?"}
+            ];
+            
+            elements.historyList.innerHTML = '';
+            
+            history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.classList.add('history-item');
+                historyItem.innerHTML = `
+                    <div class="history-date">${item.date}</div>
+                    <div class="history-message">${item.message}</div>
+                `;
+                elements.historyList.appendChild(historyItem);
+            });
+        }
+
+        // Показать уведомление
+        function showNotification(text, type) {
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                        type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            elements.notification.innerHTML = `<i class="fas ${icon}"></i> <span>${text}</span>`;
+            elements.notification.className = `notification ${type}`;
+            elements.notification.classList.add('show');
+            
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Обновление UI
+        function updateUI() {
+            elements.requestsCount.textContent = state.requestsLeft;
+        }
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Сделаем функции доступными глобально для обработчиков событий в HTML
+        window.downloadImage = downloadImage;
+    </script>
+</body>
+</html>
